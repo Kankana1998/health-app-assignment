@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -33,9 +34,11 @@ export default function SignupPage() {
         throw new Error(data.message || "Failed to sign up");
       }
 
+      toast.success(data.message || "User created successfully!");
       router.push("/login?message=Account+created.+Please+login.");
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message || "Failed to sign up");
     } finally {
       setLoading(false);
     }

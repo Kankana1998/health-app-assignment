@@ -1,99 +1,97 @@
-# Full-Stack AI-Powered Health Companion App
+# Health AI Companion
 
-## Overview
-This is a full-stack health companion application that allows users to upload their medical prescriptions and symptoms. It leverages Google's Gemini AI to parse the prescription image/PDF and symptoms to return a structured breakdown: prescribed medicines, dosage schedule, doctor's advice, and lifestyle changes.
+A full-stack, containerized health application that allows users to upload prescriptions and symptoms, utilizing the powerful Gemini AI model to extract structured medical data (medicines, dosage, advice, lifestyle changes).
 
-## Architecture & Tech Stack
-- **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS, `shadcn/ui`.
-- **Backend**: Python, Flask, SQLAlchemy, Flask-Bcrypt, PyJWT.
-- **Database**: PostgreSQL.
-- **AI Integration**: Google Gemini 1.5 Flash API.
-- **Infrastructure**: Docker, Docker Compose.
+## 🚀 Tech Stack
 
-### Separation of Concerns
-- The **frontend** handles the UI state, routing, and presenting the structured AI data cleanly.
-- The **backend** serves as a secure API gateway. It handles user authentication (JWT), file persistence (local Docker volume), prompt engineering/interaction with the Gemini API, and parsing the AI response into PostgreSQL tables.
-- **PostgreSQL** is used relationally to store `Users`, `Submissions`, and `Medicines`.
+- **Frontend**: Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui
+- **Backend**: Python, Flask, PyJWT, Bcrypt
+- **Database**: PostgreSQL
+- **AI Integration**: Google Gemini 2.5 Flash API (Strict JSON formatting)
+- **Infrastructure**: Docker, Docker Compose, AWS EC2
 
-## Features Completed
-### Must-Haves (100% Complete)
-- [x] User signup/login with hashed passwords and JWT.
-- [x] JWT middleware protecting all core API endpoints.
-- [x] Upload prescription (Image/PDF) + text symptoms.
-- [x] File persistence (stored locally via Docker volume for simplicity/free-tier).
-- [x] Gemini API integration with strict system prompting for structured JSON.
-- [x] Persistence of the parsed JSON AI output (no LLM recall on reload).
-- [x] Clear visible disclaimer that "This is not medical advice."
+---
 
-### Good-to-Haves (Partial)
-- [x] Parsed the AI response to explicitly create `Medicine` records in the relational database, setting up the foundation for medicine reminders.
+## 🌩️ AWS EC2 Deployment Configuration
 
-## Local Setup
+### 1. EC2 Instance Details
 
-### 1. Environment Variables
-Create a `.env` file in the `backend/` directory:
-```env
+| Setting | Selected Option |
+| :--- | :--- |
+| **Cloud Provider** | AWS EC2 |
+| **Region** | Europe (Stockholm) `eu-north-1` |
+| **AMI** | Ubuntu Server 24.04 LTS (HVM), SSD Volume Type |
+| **Architecture** | 64-bit (x86) |
+| **Instance Type** | `t3.micro` |
+| **Free Tier Eligible** | Yes |
+| **Virtualization** | HVM |
+| **Root Device Type** | EBS |
+| **Storage Type** | gp3 SSD |
+| **Storage Size** | 8 GiB |
+
+### 2. Key Pair Configuration
+
+| Setting | Selected Option |
+| :--- | :--- |
+| **Key Pair Type** | RSA |
+| **Private Key Format** | `.pem` |
+| **Key Pair Usage** | SSH Access |
+
+### 3. Network Configuration
+
+| Setting | Selected Option |
+| :--- | :--- |
+| **VPC** | Default VPC |
+| **Subnet** | No preference |
+| **Availability Zone** | No preference |
+| **Auto Assign Public IP** | Enabled |
+
+### 4. Security Group Rules (Inbound Rules)
+
+| Type | Protocol | Port | Source |
+| :--- | :--- | :--- | :--- |
+| SSH | TCP | 22 | `0.0.0.0/0` (Anywhere) |
+| Custom TCP | TCP | 3000 | `0.0.0.0/0` (Frontend) |
+| Custom TCP | TCP | 5000 | `0.0.0.0/0` (Backend API) |
+
+### 5. Application Ports
+
+| Service | Port |
+| :--- | :--- |
+| **Frontend (Next.js)** | 3000 |
+| **Backend (Flask API)** | 5000 |
+| **PostgreSQL** | 5432 *(Internal Docker network only)* |
+
+---
+
+## 🛠️ Deployment Instructions
+
+### Prerequisites
+- Install Docker and Docker Compose on the EC2 instance.
+- Clone the repository onto the instance.
+
+```bash
+sudo apt update && sudo apt install docker.io docker-compose git -y
+git clone <YOUR_REPO_URL> health-app
+cd health-app
+```
+
+### Environment Variables
+Create a `.env` file inside the `backend` directory:
+```bash
 DATABASE_URL=postgresql://healthuser:healthpassword@db:5432/healthdb
 JWT_SECRET_KEY=supersecretkey123
-GEMINI_API_KEY=your_actual_gemini_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
-### 2. Run with Docker Compose
-Ensure Docker Desktop is running, then run:
+### Launching the Application
+Since the application is fully containerized, deployment is a single command:
 ```bash
-docker-compose up --build
+sudo docker-compose up --build -d
 ```
-This will start:
-- **PostgreSQL Database** on port `5432`
-- **Flask Backend** on `http://localhost:5000`
-- **Next.js Frontend** on `http://localhost:3000`
 
-The database tables will be created automatically on backend startup. 
+Your application will be live at:
+- **Frontend**: `http://<EC2_PUBLIC_IP>:3000`
+- **Backend API**: `http://<EC2_PUBLIC_IP>:5000`
 
-## EC2 Deployment Runbook
-
-Follow these steps to deploy this app to a fresh AWS EC2 Free-Tier Instance (Ubuntu).
-
-### Step 1: Provision the EC2 Instance
-1. Go to AWS EC2 console, launch a new instance (`t2.micro` or `t3.micro`).
-2. Choose **Ubuntu Server 22.04 LTS**.
-3. Create/select a Key Pair to SSH into the machine.
-4. **Network Settings**: Allow SSH (port 22), HTTP (port 80), and Custom TCP (port 3000, 5000) from anywhere (`0.0.0.0/0`).
-
-### Step 2: Connect to the Instance & Install Docker
-SSH into your instance:
-```bash
-ssh -i "your-key.pem" ubuntu@<your-ec2-public-ip>
-```
-Install Docker and Docker Compose:
-```bash
-sudo apt update
-sudo apt install docker.io docker-compose -y
-sudo systemctl enable docker
-sudo systemctl start docker
-# Add ubuntu user to docker group to run docker without sudo
-sudo usermod -aG docker ubuntu
-```
-*Note: You may need to log out and log back in for the group changes to take effect.*
-
-### Step 3: Clone the Repository & Configure Environment
-```bash
-git clone <your-repo-url>
-cd health-app-assignment
-```
-Create your `.env` file in the backend directory with your `GEMINI_API_KEY`:
-```bash
-nano backend/.env
-```
-Update the `docker-compose.yml` frontend environment variable if needed to point to your public IP instead of localhost (though the Next.js app communicates via the user's browser, so setting `NEXT_PUBLIC_API_URL=http://<your-ec2-public-ip>:5000/api` in `frontend/Dockerfile` or as an ENV is recommended).
-
-### Step 4: Run the Application
-```bash
-docker-compose up -d --build
-```
-The application will now be running. You can access the frontend at `http://<your-ec2-public-ip>:3000`.
-
-## Trade-offs & Known Issues
-- **File Storage**: I opted for a local Docker volume mount (`./uploads`) instead of S3. This satisfies the assignment constraints without requiring extra AWS configuration or IAM user provisioning, fitting the "simple and well-built" philosophy.
-- **Frontend Environment Variables**: In a production setting, `NEXT_PUBLIC_API_URL` should be injected dynamically based on the environment rather than hardcoded in the Dockerfile.
-- **Reminders / WebSockets**: I skipped the websocket/cron worker notification system for medicine reminders to ensure the core Upload/Gemini analysis flow was rock-solid and completed well before the deadline. However, the database schema is prepared (`Medicine` table with `status`) to support this feature trivially in the future.
+> **Note**: The Next.js frontend has a built-in proxy in `next.config.mjs` that securely routes `/api/*` traffic directly into the internal Docker network (`http://backend:5000`), completely bypassing CORS issues or hardcoded IP requirements.

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { getToken } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
@@ -19,7 +19,8 @@ interface Submission {
   created_at: string;
 }
 
-export default function SubmissionDetailsPage({ params }: { params: { id: string } }) {
+export default function SubmissionDetailsPage() {
+  const params = useParams();
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -31,6 +32,8 @@ export default function SubmissionDetailsPage({ params }: { params: { id: string
         router.push("/login");
         return;
       }
+
+      if (!params?.id) return;
 
       try {
         const res = await fetch(`/api/submissions/${params.id}`, {

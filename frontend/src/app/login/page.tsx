@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -35,9 +36,11 @@ export default function LoginPage() {
       }
 
       setToken(data.token);
+      toast.success("Login successful!");
       router.push("/dashboard");
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message || "Invalid credentials");
     } finally {
       setLoading(false);
     }

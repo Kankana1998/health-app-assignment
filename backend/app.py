@@ -6,7 +6,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
-import google.generativeai as genai
+import requests
+import base64
 import jwt
 import json
 
@@ -24,9 +25,6 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-# Configure Gemini
-genai.configure(api_key=os.environ.get('GEMINI_API_KEY'))
 
 # Initialize Extensions
 db = SQLAlchemy(app)
@@ -138,8 +136,13 @@ def create_submission(current_user):
         file.save(file_path)
 
         try:
-            # Upload file to Gemini
-            gemini_file = genai.upload_file(path=file_path)
+            # Prepare file for REST API
+            mime_type = 'application/pdf' if file.filename.lower().endswith('.pdf') else 'image/jpeg'
+            if file.filename.lower().endswith('.png'):
+                mime_type = 'image/png'
+                
+            with open(file_path, "rb") as f:
+                encoded_file = base64.b64encode(f.read()).decode('utf-8')
 
             prompt = f"""
             Analyze this prescription and symptoms.
@@ -155,14 +158,36 @@ def create_submission(current_user):
             Do not include Markdown formatting like ```json in the output. Just raw JSON.
             """
 
-            model = genai.GenerativeModel(model_name="gemini-1.5-flash")
-            response = model.generate_content([gemini_file, prompt])
+            api_key = os.environ.get('GEMINI_API_KEY')
+            if not api_key:
+                return jsonify({'message': 'Gemini API key is missing'}), 500
+
+            headers = {'Content-Type': 'application/json'}
+            payload = {
+                "contents": [{
+                    "parts": [
+                        {"text": prompt},
+                        {
+                            "inline_data": {
+                                "mime_type": mime_type,
+                                "data": encoded_file
+                            }
+                        }
+                    ]
+                }],
+                "generationConfig": {
+                    "responseMimeType": "application/json"
+                }
+            }
+
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+            gemini_res = requests.post(url, headers=headers, json=payload)
             
-            response_text = response.text.strip()
-            if response_text.startswith("```json"):
-                response_text = response_text[7:-3]
-            elif response_text.startswith("```"):
-                response_text = response_text[3:-3]
+            if not gemini_res.ok:
+                return jsonify({'message': f'AI API Error: {gemini_res.text}'}), 500
+
+            response_data = gemini_res.json()
+            response_text = response_data['candidates'][0]['content']['parts'][0]['text'].strip()
 
             parsed_json = json.loads(response_text)
 
@@ -236,4 +261,4 @@ with app.app_context():
 
 if __name__ == '__main__':
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', port=5001)
