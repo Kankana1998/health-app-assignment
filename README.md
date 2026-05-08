@@ -12,9 +12,53 @@ A full-stack, containerized health application that allows users to upload presc
 
 ---
 
-## 🌩️ AWS EC2 Deployment Configuration
+## 🏗️ Architecture Description
+- **Frontend**: Next.js App Router providing a snappy UI, with a `next.config.mjs` proxy routing `/api` requests to the backend container to bypass CORS and simplify EC2 networking.
+- **Backend**: Flask API serving as the orchestration layer. Uses PyJWT for stateless authentication and bcrypt for password hashing.
+- **AI Engine**: Direct integration with Gemini 2.5 Flash REST API (using strict `application/json` schema enforcement) to parse unstructured prescriptions and symptoms into structured JSON.
+- **Database**: PostgreSQL (containerized) handling relational storage of users and AI inference results.
+- **Storage**: Local disk/Docker volume for uploaded files, keeping infrastructure lean and within AWS Free Tier limits.
 
-### 1. EC2 Instance Details
+## ✨ Features
+
+### Completed (Must-Haves)
+✅ Secure user signup & login with bcrypt & JWT
+✅ Protected API endpoints via custom JWT middleware
+✅ Upload prescriptions (PDF, PNG, JPG) with free-text symptom notes
+✅ File persistence using Docker Volumes
+✅ Google Gemini 2.5 Flash AI integration using strict JSON enforcement
+✅ Persistent AI structural extraction (medicines, dosage schedule, doctor's advice, lifestyle changes)
+✅ Explicit UI disclaimer rendering for medical advice
+
+### Skipped (Good-to-Haves)
+❌ Medicine Reminders / Cron Workers (Prioritized core reliability and a polished, bug-free "Must-Have" experience as per the "Partial but well-built" philosophy).
+
+## ⚠️ Known Issues & Trade-offs
+- **File Storage**: Using a local Docker volume (`./uploads`) instead of AWS S3. This keeps the application 100% within the free tier and avoids IAM complexity, but it means the server is stateful.
+- **Gemini SDK vs REST**: Bypassed the official `google-generativeai` SDK in favor of the raw REST API (`requests`) to ensure maximum compatibility across varying Python environments and avoid `protobuf` conflicts.
+
+---
+
+## 🏃 Local Setup Instructions
+
+1. Clone the repository.
+2. Create `backend/.env` with the required variables (see below).
+3. Ensure Docker Desktop is running.
+4. Run `docker-compose up --build`
+5. Open `http://localhost:3000`
+
+## 🔑 Environment Variables
+Create a `.env` file inside the `backend` directory:
+```bash
+# Connection string for the dockerized PostgreSQL database
+DATABASE_URL=postgresql://healthuser:healthpassword@db:5432/healthdb
+
+# Secret key for signing JWTs (use any secure random string)
+JWT_SECRET_KEY=supersecretkey123
+
+# Gemini API Key (Obtain for free from Google AI Studio)
+GEMINI_API_KEY=your_gemini_api_key_here
+```
 
 | Setting | Selected Option |
 | :--- | :--- |

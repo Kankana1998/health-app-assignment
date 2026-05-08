@@ -45,16 +45,16 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">Create an Account</CardTitle>
-          <CardDescription>Enter your email below to create your account</CardDescription>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <Card className="w-full max-w-md shadow-2xl border-0 ring-1 ring-black/5">
+        <CardHeader className="space-y-3 pb-6">
+          <CardTitle className="text-3xl font-extrabold text-center text-gray-900 tracking-tight">Create an Account</CardTitle>
+          <CardDescription className="text-center text-base text-gray-500">Enter your email below to create your account</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSignup} className="space-y-4">
+          <form onSubmit={handleSignup} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-sm font-semibold text-gray-700">Email address</Label>
               <Input
                 id="email"
                 type="email"
@@ -62,29 +62,31 @@ export default function SignupPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="h-12 text-base rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-sm font-semibold text-gray-700">Password</Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                className="h-12 text-base rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            {error && <p className="text-sm text-red-500">{error}</p>}
-            <Button type="submit" className="w-full" disabled={loading}>
+            {error && <p className="text-sm text-red-500 bg-red-50 p-3 rounded-md font-medium">{error}</p>}
+            <Button type="submit" className="w-full h-14 text-lg font-bold rounded-xl shadow-md hover:shadow-lg transition-all duration-200" disabled={loading}>
               {loading ? "Creating account..." : "Sign Up"}
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-gray-600">
+        <CardFooter className="flex justify-center pt-6 border-t border-gray-100 mt-2">
+          <p className="text-sm text-gray-600 font-medium">
             Already have an account?{" "}
-            <Link href="/login" className="text-blue-600 hover:underline">
-              Login
+            <Link href="/login" className="text-blue-600 hover:text-blue-700 hover:underline font-semibold transition-colors">
+              Login here
             </Link>
           </p>
         </CardFooter>
