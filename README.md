@@ -94,7 +94,7 @@ GEMINI_API_KEY=your_gemini_api_key_here
 
 | Type | Protocol | Port | Source |
 | :--- | :--- | :--- | :--- |
-| SSH | TCP | 22 | `0.0.0.0/0` (Anywhere) |
+| SSH | TCP | 22 | `0.0.0.0/0` *(For demo purposes; restrict to your IP in production)* |
 | Custom TCP | TCP | 3000 | `0.0.0.0/0` (Frontend) |
 | Custom TCP | TCP | 5000 | `0.0.0.0/0` (Backend API) |
 
@@ -116,15 +116,20 @@ GEMINI_API_KEY=your_gemini_api_key_here
 
 ```bash
 sudo apt update && sudo apt install docker.io docker-compose git -y
-git clone <YOUR_REPO_URL> health-app
+git clone https://github.com/Kankana1998/health-app-assignment.git health-app
 cd health-app
 ```
 
 ### Environment Variables
 Create a `.env` file inside the `backend` directory:
 ```bash
+# Connection string for the dockerized PostgreSQL database
 DATABASE_URL=postgresql://healthuser:healthpassword@db:5432/healthdb
-JWT_SECRET_KEY=supersecretkey123
+
+# Secret key for signing JWTs (use any secure random string)
+JWT_SECRET_KEY=your_secure_random_secret
+
+# Gemini API Key (Obtain for free from Google AI Studio)
 GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
