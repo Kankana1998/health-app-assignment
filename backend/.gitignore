@@ -19,3 +19,8 @@ uploads/
 .vscode/
 .idea/
 .DS_Store
+
+# Database files
+instance/
+*.db
+*.sqlite3
