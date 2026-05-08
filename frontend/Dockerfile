@@ -7,8 +7,8 @@ RUN npm install
 
 COPY . .
 
-# Environment variables must be present at build time for Next.js if they are public
-ENV NEXT_PUBLIC_API_URL=http://localhost:5000/api
+# Set internal Docker DNS for Next.js proxy rewrite
+ENV BACKEND_URL=http://backend:5000
 RUN npm run build
 
 EXPOSE 3000
