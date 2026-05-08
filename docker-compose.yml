@@ -18,12 +18,11 @@ services:
       - "5000:5000"
     environment:
       - FLASK_APP=app.py
-      - FLASK_ENV=development
+      - FLASK_ENV=production
       - DATABASE_URL=postgresql://healthuser:healthpassword@db:5432/healthdb
       - JWT_SECRET_KEY=supersecretkey123
       - GEMINI_API_KEY=${GEMINI_API_KEY}
     volumes:
-      - ./backend:/app
       - ./uploads:/app/uploads
     depends_on:
       - db
@@ -32,9 +31,6 @@ services:
     build: ./frontend
     ports:
       - "3000:3000"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:5000/api
     depends_on:
